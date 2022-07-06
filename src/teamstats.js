@@ -1,4 +1,8 @@
 export default class TeamStats {
+    // team name
+    name = '';
+    // team id
+    id = 0;
     // points
     pts = 0;
     // field goal attempts
@@ -19,6 +23,8 @@ export default class TeamStats {
     wins = 0;
 
     print() {
+        console.log('Team name: ' + this.name);
+        console.log('Team id: ' + this.id);
         console.log('Team pts: ' + this.pts);
         console.log('Team fga: ' + this.fga);
         console.log('Team reb: ' + this.reb);

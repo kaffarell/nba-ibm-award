@@ -5,7 +5,7 @@ import { getPlayerStatsManually, getTeamStatsManually } from './userInput.js';
 import ora from 'ora';
 import pkg from 'enquirer';
 const { Select } = pkg;
-
+import fs from 'fs';
 
 
 
@@ -63,6 +63,8 @@ async function getPlayerStats(player_id) {
     spinner_sum.succeed();
 
     let playerstats = new PlayerStats();
+    playerstats.name = data[0].player.first_name + " " + data[0].player.last_name;
+    playerstats.id = data[0].player.id;
     playerstats.pts = player_pts;
     playerstats.fga = player_fga;
     playerstats.reb = player_reb;
@@ -89,7 +91,6 @@ async function getAllGamesByTeam(team_id) {
     };
 
     let response = await axios.request(options);
-    console.log(response.data);
     let data = response.data.data;
     data.map(game => {
         // count the wins
@@ -192,6 +193,8 @@ async function getTeamStats(team_id) {
     spinner_sum.succeed();
 
     let teamstats = new TeamStats();
+    teamstats.name = response.data.data[0].team.full_name;
+    teamstats.id = response.data.data[0].team.id;
     teamstats.pts = team_pts;
     teamstats.fga = team_fga;
     teamstats.reb = team_reb;
@@ -201,26 +204,14 @@ async function getTeamStats(team_id) {
     teamstats.pf = team_pf;
     teamstats.to = team_to;
     teamstats.wins = wins;
+
     return teamstats;
 }
 
 async function calculate() {
-    let teamStats;
     let playerStats;
+    let teamStats;
 
-    const prompt_team = new Select({
-        name: 'fetch_team_data',
-        message: 'Automatically fetch team data or enter manually?',
-        choices: ['fetch', 'enter']
-    });
-
-    let answer = await prompt_team.run();
-    if (answer == 'fetch') {
-        teamStats = await getTeamStats(14)
-    } else {
-        teamStats = await getTeamStatsManually();
-    }
-    console.log(teamStats);
 
     const prompt_player = new Select({
         name: 'fetch_player_data',
@@ -235,6 +226,20 @@ async function calculate() {
         playerStats = await getPlayerStatsManually();
     }
     console.log(playerStats);
+
+    const prompt_team = new Select({
+        name: 'fetch_team_data',
+        message: 'Automatically fetch team data or enter manually?',
+        choices: ['fetch', 'enter']
+    });
+
+    let answer = await prompt_team.run();
+    if (answer == 'fetch') {
+        teamStats = await getTeamStats(14)
+    } else {
+        teamStats = await getTeamStatsManually();
+    }
+    console.log(teamStats);
 
 
     const spinner_calculating = ora('Calculating').start();

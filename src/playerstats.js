@@ -1,4 +1,8 @@
 export default class PlayerStats {
+    // player name
+    name = '';
+    // player id
+    id = 0;
     // player points
     pts = 0;
     // field goal attempts
@@ -17,6 +21,8 @@ export default class PlayerStats {
     to = 0;
 
     print() {
+        console.log('Player name: ' + this.name);
+        console.log('Player id: ' + this.id);
         console.log('Player pts: ' + this.pts);
         console.log('Player fga: ' + this.fga);
         console.log('Player reb: ' + this.reb);

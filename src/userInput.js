@@ -11,6 +11,11 @@ export async function getTeamStatsManually() {
         [
             {
                 type: 'input',
+                name: 'name',
+                message: 'What is the team name? (Will not be used for calculation)'
+            },
+            {
+                type: 'input',
                 name: 'pts',
                 message: 'What are the teams points this season?'
             },
@@ -56,6 +61,7 @@ export async function getTeamStatsManually() {
             }
         ]
     );
+    teamStat.name = response.name
     teamStat.pts = response.pts;
     teamStat.fga = response.fga;
     teamStat.reb = response.reb;
