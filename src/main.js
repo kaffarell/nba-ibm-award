@@ -1,7 +1,12 @@
 import axios from 'axios';
 import PlayerStats from './playerstats.js';
 import TeamStats from './teamstats.js';
+import { getPlayerStatsManually, getTeamStatsManually } from './userInput.js';
 import ora from 'ora';
+import pkg from 'enquirer';
+const { Select } = pkg;
+
+
 
 
 async function getPlayerStats(player_id) {
@@ -200,8 +205,37 @@ async function getTeamStats(team_id) {
 }
 
 async function calculate() {
-    let teamStats = await getTeamStats(14)
-    let playerStats = await getPlayerStats(237)
+    let teamStats;
+    let playerStats;
+
+    const prompt_team = new Select({
+        name: 'fetch_team_data',
+        message: 'Automatically fetch team data or enter manually?',
+        choices: ['fetch', 'enter']
+    });
+
+    let answer = await prompt_team.run();
+    if (answer == 'fetch') {
+        teamStats = await getTeamStats(14)
+    } else {
+        teamStats = await getTeamStatsManually();
+    }
+    console.log(teamStats);
+
+    const prompt_player = new Select({
+        name: 'fetch_player_data',
+        message: 'Automatically fetch player data or enter manually?',
+        choices: ['fetch', 'enter']
+    });
+
+    let answer_player = await prompt_player.run();
+    if (answer_player == 'fetch') {
+        playerStats = await getPlayerStats(237)
+    } else {
+        playerStats = await getPlayerStatsManually();
+    }
+    console.log(playerStats);
+
 
     const spinner_calculating = ora('Calculating').start();
     let divident = playerStats.pts - playerStats.fga + playerStats.reb + playerStats.ast + playerStats.stl + playerStats.blk - playerStats.pf - playerStats.to + (teamStats.wins * 10) * 250;
