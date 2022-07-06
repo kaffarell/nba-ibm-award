@@ -222,6 +222,12 @@ async function calculate() {
     let answer_player = await prompt_player.run();
     if (answer_player == 'fetch') {
         playerStats = await getPlayerStats(237)
+        // Save response locally for offline evaluation
+        let json = JSON.stringify(playerStats);
+        let filename = playerStats.name.replace(' ', '_') + '.json';
+        fs.writeFile('./data/' + filename, json, (err) => {
+            console.error(err);
+        });
     } else {
         playerStats = await getPlayerStatsManually();
     }
@@ -236,6 +242,12 @@ async function calculate() {
     let answer = await prompt_team.run();
     if (answer == 'fetch') {
         teamStats = await getTeamStats(14)
+        // Save response locally for offline evaluation
+        let json = JSON.stringify(teamStats);
+        let filename = teamStats.name.replace(' ', '_') + '.json';
+        fs.writeFile('./data/' + filename, json, (err) => {
+            console.error(err);
+        });
     } else {
         teamStats = await getTeamStatsManually();
     }
