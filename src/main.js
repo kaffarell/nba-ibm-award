@@ -228,5 +228,11 @@ async function getTeamStats(team_id) {
     teamstats.wins = wins;
     return teamstats;
 }
-getTeamStats(14)
-//getPlayerStats(237)
+
+let teamStats = await getTeamStats(14)
+let playerStats = await getPlayerStats(237)
+
+let divident = playerStats.pts - playerStats.fga + playerStats.reb + playerStats.ast + playerStats.stl + playerStats.blk - playerStats.pf - playerStats.to + (teamStats.wins * 10) * 250;
+let divisor = teamStats.pts - teamStats.fga + teamStats.reb + teamStats.ast + teamStats.stl + teamStats.blk - teamStats.pf - teamStats.to;
+let result = divident / divisor;
+console.log('Result = ' + result);
