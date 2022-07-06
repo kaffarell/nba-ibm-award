@@ -1,4 +1,4 @@
-class TeamStats {
+export default class TeamStats {
     // points
     pts = 0;
     // field goal attempts
@@ -30,5 +30,3 @@ class TeamStats {
         console.log('Team wins: ' + this.wins);
     }
 }
-
-module.exports = {TeamStats};

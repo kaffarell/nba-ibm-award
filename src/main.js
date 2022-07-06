@@ -1,8 +1,11 @@
-const axios = require("axios");
-const { PlayerStats } = require("./playerstats");
-const { TeamStats } = require("./teamstats");
+import axios from 'axios';
+import PlayerStats from './playerstats.js';
+import TeamStats from './teamstats.js';
+import ora from 'ora';
+
 
 async function getPlayerStats(player_id) {
+    const spinner_stats = ora('Getting all stats from specific player').start();
     const options = {
         method: 'GET',
         url: 'https://free-nba.p.rapidapi.com/stats',
@@ -16,7 +19,7 @@ async function getPlayerStats(player_id) {
     let response = await axios.request(options);
     //console.log(response.data);
     let data = response.data.data;
-
+    spinner_stats.succeed(); 
     /*
     data = data.sort((a, b) => {
         let a_date = new Date(a.game.date); 
@@ -41,6 +44,7 @@ async function getPlayerStats(player_id) {
     // turnovers
     let player_to = 0;
 
+    const spinner_sum = ora('Sum stats from every game').start();
     data.map((a) => {
         player_pts += a.pts;
         player_fga += a.fga;
@@ -51,6 +55,7 @@ async function getPlayerStats(player_id) {
         player_pf += a.pf;
         player_to += a.turnover;
     });
+    spinner_sum.succeed();
 
     let playerstats = new PlayerStats();
     playerstats.pts = player_pts;
@@ -142,7 +147,9 @@ async function getSinglePageTeamStat(page, gamesFromTeam) {
 
 async function getTeamStats(team_id) {
 
+    const spinner_games = ora('Getting all games from specific team').start();
     let {gamesFromTeam, wins} = await getAllGamesFromTeam(team_id);
+    spinner_games.succeed();
 
     // Make a single request to get the amount of pages
     const options = {
@@ -157,6 +164,9 @@ async function getTeamStats(team_id) {
 
     let response = await axios.request(options);
     // Get amount of pages
+
+    const spinner_stats = ora('Getting stats from every game').start();
+
     let pages = response.data.meta.total_pages;
     let promises = [];
     for(let i = 0; i < pages; i++) {
@@ -173,6 +183,7 @@ async function getTeamStats(team_id) {
             }
         });
     });
+    spinner_stats.succeed();
     //console.log(allPlayerStats)
 
     // points
@@ -192,6 +203,7 @@ async function getTeamStats(team_id) {
     // turnovers
     let team_to = 0;
 
+    const spinner_sum = ora('Sum stats from every game').start();
     allPlayerStats.map((a) => {
         team_pts += a.pts;
         team_fga += a.fga;
@@ -202,6 +214,7 @@ async function getTeamStats(team_id) {
         team_pf += a.pf;
         team_to += a.turnover;
     });
+    spinner_sum.succeed();
 
     let teamstats = new TeamStats();
     teamstats.pts = team_pts;

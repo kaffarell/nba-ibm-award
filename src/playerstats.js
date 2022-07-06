@@ -1,4 +1,4 @@
-class PlayerStats {
+export default class PlayerStats {
     // player points
     pts = 0;
     // field goal attempts
@@ -27,4 +27,3 @@ class PlayerStats {
         console.log('Player to: ' + this.to);
     }
 }
-module.exports = { PlayerStats };
