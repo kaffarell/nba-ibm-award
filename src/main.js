@@ -1,4 +1,6 @@
 const axios = require("axios");
+const { PlayerStats } = require("./playerstats");
+const { TeamStats } = require("./teamstats");
 
 async function getPlayerStats(player_id) {
     const options = {
@@ -50,14 +52,16 @@ async function getPlayerStats(player_id) {
         player_to += a.turnover;
     });
 
-    console.log('Player pts: ' + player_pts);
-    console.log('Player fga: ' + player_fga);
-    console.log('Player reb: ' + player_reb);
-    console.log('Player ast: ' + player_ast);
-    console.log('Player stl: ' + player_stl);
-    console.log('Player blk: ' + player_blk);
-    console.log('Player pf: ' + player_pf);
-    console.log('Player to: ' + player_to);
+    let playerstats = new PlayerStats();
+    playerstats.pts = player_pts;
+    playerstats.fga = player_fga;
+    playerstats.reb = player_reb;
+    playerstats.ast = player_ast;
+    playerstats.stl = player_stl;
+    playerstats.blk = player_blk;
+    playerstats.pf = player_pf;
+    playerstats.to = player_to;
+    return playerstats;
 }
 
 async function getAllPlayers(page) {
@@ -99,23 +103,33 @@ async function getAllGamesFromTeam(team_id) {
         promises.push(getAllGames(i));
     }
     let values = await Promise.all(promises)
+    let wins = 0;
     values.map((a) => {
         a.map((e) => {
+            // Get all the games from a team
             if(e.home_team.id == team_id || e.visitor_team.id == team_id) {
                 game_ids.push(e.id);
+
+                // count wins
+                if(e.home_team.id == team_id && (e.home_team_score > e.visitor_team_score)){
+                    // home team wins
+                    wins++;
+                }
+                if(e.visitor_team.id == team_id && (e.visitor_team_score > e.home_team_score)){
+                    // visitor team wins
+                    wins++;
+                }
             }
         });
     });
-    return game_ids;
+    return {game_ids, wins};
 }
 
-async function getTeamStats(team_id) {
-
-
+async function getSinglePageTeamStat(page, gamesFromTeam) {
     const options = {
         method: 'GET',
         url: 'https://free-nba.p.rapidapi.com/stats',
-        params: { page: '0', per_page: '100', seasons: [2021], player_ids: [] },
+        params: { page: page, per_page: '100', seasons: [2021], game_ids: gamesFromTeam },
         headers: {
             'X-RapidAPI-Key': '5ef504cea6msh615586526b620d4p1b13d7jsnad0a11e7f91f',
             'X-RapidAPI-Host': 'free-nba.p.rapidapi.com'
@@ -123,16 +137,44 @@ async function getTeamStats(team_id) {
     };
 
     let response = await axios.request(options);
-    //console.log(response.data);
-    let data = response.data.data;
+    return response.data.data;
+}
 
-    /*
-    data = data.sort((a, b) => {
-        let a_date = new Date(a.game.date); 
-        let b_date = new Date(b.game.date);
-        return a_date > b_date ? 1 : a_date < b_date ? -1 : 0;
-    }); 
-    */
+async function getTeamStats(team_id) {
+
+    let {gamesFromTeam, wins} = await getAllGamesFromTeam(team_id);
+
+    // Make a single request to get the amount of pages
+    const options = {
+        method: 'GET',
+        url: 'https://free-nba.p.rapidapi.com/stats',
+        params: { page: '0', per_page: '100', seasons: [2021], game_ids: gamesFromTeam },
+        headers: {
+            'X-RapidAPI-Key': '5ef504cea6msh615586526b620d4p1b13d7jsnad0a11e7f91f',
+            'X-RapidAPI-Host': 'free-nba.p.rapidapi.com'
+        }
+    };
+
+    let response = await axios.request(options);
+    // Get amount of pages
+    let pages = response.data.meta.total_pages;
+    let promises = [];
+    for(let i = 0; i < pages; i++) {
+        promises.push(getSinglePageTeamStat(i, gamesFromTeam));
+    }
+    let allPlayerStats = [];
+
+    let values = await Promise.all(promises);
+    // Get only stats from the wanted team (and not from the opposing team)
+    values.map((a) => {
+        a.map((e) => {
+            if(e.team.id == team_id){
+                allPlayerStats.push(e);
+            }
+        });
+    });
+    //console.log(allPlayerStats)
+
     // points
     let team_pts = 0;
     // field goal attempts
@@ -150,7 +192,7 @@ async function getTeamStats(team_id) {
     // turnovers
     let team_to = 0;
 
-    data.map((a) => {
+    allPlayerStats.map((a) => {
         team_pts += a.pts;
         team_fga += a.fga;
         team_reb += a.reb;
@@ -161,14 +203,17 @@ async function getTeamStats(team_id) {
         team_to += a.turnover;
     });
 
-    console.log('Team pts: ' + team_pts);
-    console.log('Team fga: ' + team_fga);
-    console.log('Team reb: ' + team_reb);
-    console.log('Team ast: ' + team_ast);
-    console.log('Team stl: ' + team_stl);
-    console.log('Team blk: ' + team_blk);
-    console.log('Team pf: ' + team_pf);
-    console.log('Team to: ' + team_to);
+    let teamstats = new TeamStats();
+    teamstats.pts = team_pts;
+    teamstats.fga = team_fga;
+    teamstats.reb = team_reb;
+    teamstats.ast = team_ast;
+    teamstats.stl = team_stl;
+    teamstats.blk = team_blk;
+    teamstats.pf = team_pf;
+    teamstats.to = team_to;
+    teamstats.wins = wins;
+    return teamstats;
 }
 getTeamStats(14)
 //getPlayerStats(237)
