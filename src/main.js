@@ -4,7 +4,7 @@ import TeamStats from './teamstats.js';
 import { getPlayerStatsManually, getTeamStatsManually } from './userInput.js';
 import ora from 'ora';
 import pkg from 'enquirer';
-const { Select } = pkg;
+const { Select, prompt } = pkg;
 import fs from 'fs';
 
 
@@ -22,7 +22,6 @@ async function getPlayerStats(player_id) {
     };
 
     let response = await axios.request(options);
-    //console.log(response.data);
     let data = response.data.data;
     spinner_stats.succeed();
     /*
@@ -118,7 +117,6 @@ async function getSinglePageTeamStat(page, gamesFromTeam) {
     };
 
     let response = await axios.request(options);
-    console.log(response.data);
     return response.data.data;
 }
 
@@ -215,8 +213,8 @@ async function calculate() {
 
     const prompt_player = new Select({
         name: 'fetch_player_data',
-        message: 'Automatically fetch player data or enter manually?',
-        choices: ['fetch', 'enter']
+        message: 'Automatically fetch player data, enter manually or open file?',
+        choices: ['fetch', 'enter', 'open']
     });
 
     let answer_player = await prompt_player.run();
@@ -228,9 +226,20 @@ async function calculate() {
         fs.writeFile('./data/' + filename, json, (err) => {
             console.error(err);
         });
-    } else {
+    } else if (answer_player == 'enter') {
         playerStats = await getPlayerStatsManually();
+    } else if (answer_player == 'open') {
+        // Open file
+        let response = await prompt(
+            {
+                type: 'input',
+                name: 'name',
+                message: 'What is the players name? (filename)'
+            });
+        let fileContent = fs.readFileSync('./data/' + response.name + '.json');
+        playerStats = JSON.parse(fileContent);
     }
+
     console.log(playerStats);
 
     const prompt_team = new Select({
