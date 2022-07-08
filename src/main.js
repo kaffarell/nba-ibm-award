@@ -213,8 +213,8 @@ async function calculate() {
 
     const prompt_player = new Select({
         name: 'fetch_player_data',
-        message: 'Automatically fetch player data, enter manually or open file?',
-        choices: ['fetch', 'enter', 'open']
+        message: 'Automatically fetch player data, enter it manually or import from file?',
+        choices: ['fetch', 'enter', 'import']
     });
 
     let answer_player = await prompt_player.run();
@@ -228,7 +228,7 @@ async function calculate() {
         });
     } else if (answer_player == 'enter') {
         playerStats = await getPlayerStatsManually();
-    } else if (answer_player == 'open') {
+    } else if (answer_player == 'import') {
         // Open file
         let response = await prompt(
             {
@@ -244,8 +244,8 @@ async function calculate() {
 
     const prompt_team = new Select({
         name: 'fetch_team_data',
-        message: 'Automatically fetch team data or enter manually?',
-        choices: ['fetch', 'enter']
+        message: 'Automatically fetch team data, enter it manually, or import from file?',
+        choices: ['fetch', 'enter', 'import']
     });
 
     let answer = await prompt_team.run();
@@ -257,8 +257,18 @@ async function calculate() {
         fs.writeFile('./data/' + filename, json, (err) => {
             console.error(err);
         });
-    } else {
+    } else if (answer == 'enter'){
         teamStats = await getTeamStatsManually();
+    }else if(answer == 'import') {
+        // Open file
+        let response = await prompt(
+            {
+                type: 'input',
+                name: 'name',
+                message: 'What is the teams name? (filename)'
+            });
+        let fileContent = fs.readFileSync('./data/' + response.name + '.json');
+        teamStats = JSON.parse(fileContent);
     }
     console.log(teamStats);
 
