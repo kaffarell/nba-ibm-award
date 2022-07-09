@@ -206,6 +206,22 @@ async function getTeamStats(team_id) {
     return teamstats;
 }
 
+function storeResults(result, playerName, teamName) {
+    // Read from file, append to array and write to file again
+    let date = new Date().toISOString().slice(0, 10);
+    fs.readFile('./data/results.json', (err, data) => {
+        if (err || data == '') {
+            let jsonObject = [{ date: date, playerName: playerName, teamName: teamName, result: result }];
+            fs.writeFileSync('./data/results.json', JSON.stringify(jsonObject));
+        } else {
+            let array = JSON.parse(data);
+            let jsonObject = { date: date, playerName: playerName, teamName: teamName, result: result };
+            array.push(jsonObject);
+            fs.writeFileSync('./data/results.json', JSON.stringify(array));
+        }
+    });
+}
+
 async function calculate() {
     let playerStats;
     let teamStats;
@@ -257,9 +273,9 @@ async function calculate() {
         fs.writeFile('./data/' + filename, json, (err) => {
             console.error(err);
         });
-    } else if (answer == 'enter'){
+    } else if (answer == 'enter') {
         teamStats = await getTeamStatsManually();
-    }else if(answer == 'import') {
+    } else if (answer == 'import') {
         // Open file
         let response = await prompt(
             {
@@ -280,6 +296,7 @@ async function calculate() {
     spinner_calculating.succeed();
 
     console.log('Result = ' + result);
+    storeResults(result, playerStats.name, teamStats.name);
 }
 
 calculate();
