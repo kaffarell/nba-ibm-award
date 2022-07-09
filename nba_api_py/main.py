@@ -1,12 +1,22 @@
 from nba_api.stats.endpoints import teamdashboardbyteamperformance
+from nba_api.stats.static import teams
 from pandas import DataFrame
 import json
 
-# Anthony Davis
-data = teamdashboardbyteamperformance.TeamDashboardByTeamPerformance(season="2021-22", team_id="1610612738")
+
+team_name = 'Los Angeles Lakers'
+
+# get_teams returns a list of 30 dictionaries, each an NBA team.
+nba_teams = teams.get_teams()
+print('Number of teams fetched: {}'.format(len(nba_teams)))
+wanted_team = [team for team in nba_teams
+         if team['full_name'] == team_name][0]
+
+print('Found team: ', wanted_team['full_name'])
+
+data = teamdashboardbyteamperformance.TeamDashboardByTeamPerformance(season="2021-22", team_id=wanted_team['id'])
 team_stats = data.get_data_frames()[0].iloc[0]
-team_name = 'Boston Celtics'
-team_id = 0
+team_id = wanted_team['id']
 team_pts = int(team_stats["PTS"])
 team_fga = int(team_stats["FGA"])
 team_reb = int(team_stats["REB"])
@@ -33,6 +43,7 @@ data_obj = {
 
 json = json.dumps(data_obj)
 
+print('Storing team stats...')
 file = open("../data/" + team_name.replace(" ", "_") + ".json", "w")
 a = file.write(json)
 file.close()
